@@ -1,0 +1,77 @@
+<idea-plugin>
+    <id>com.jeffersongoncalves.herdmanager</id>
+    <name>Herd Manager</name>
+    <vendor email="jefferson@jeffersongoncalves.com"
+            url="https://github.com/jeffersongoncalves">
+        Jefferson Goncalves
+    </vendor>
+
+    <description><![CDATA[
+    Manage Laravel Herd site configuration directly from PHPStorm.
+    <ul>
+        <li>Auto-detect and configure herd.yml</li>
+        <li>Configure site name, PHP version, HTTPS</li>
+        <li>Link/unlink sites via Herd CLI</li>
+        <li>Open sites in browser with one click</li>
+        <li>Status bar widget showing link status</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.php</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService
+            serviceImplementation="com.jeffersongoncalves.herdmanager.service.HerdConfigService"/>
+
+        <applicationService
+            serviceImplementation="com.jeffersongoncalves.herdmanager.service.HerdCliService"/>
+
+        <applicationService
+            serviceImplementation="com.jeffersongoncalves.herdmanager.service.HerdDetectorService"/>
+
+        <toolWindow
+            id="Herd Manager"
+            anchor="right"
+            secondary="true"
+            icon="/icons/herd.svg"
+            factoryClass="com.jeffersongoncalves.herdmanager.ui.HerdToolWindowFactory"/>
+
+        <statusBarWidgetFactory
+            id="HerdStatusBarWidget"
+            implementation="com.jeffersongoncalves.herdmanager.ui.HerdStatusBarWidgetFactory"
+            order="after encodingWidget"/>
+
+        <postStartupActivity
+            implementation="com.jeffersongoncalves.herdmanager.listeners.HerdProjectOpenListener"/>
+
+        <notificationGroup
+            id="Herd Manager"
+            displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <group id="HerdManager.ActionGroup"
+               text="Herd"
+               description="Laravel Herd actions"
+               popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+
+            <action id="HerdManager.ConfigureSite"
+                    class="com.jeffersongoncalves.herdmanager.actions.HerdConfigureSiteAction"
+                    text="Configure Site"
+                    description="Configure Laravel Herd site settings"
+                    icon="/icons/herd.svg"/>
+
+            <action id="HerdManager.LinkSite"
+                    class="com.jeffersongoncalves.herdmanager.actions.HerdLinkSiteAction"
+                    text="Link Site"
+                    description="Link this project to Laravel Herd"/>
+
+            <action id="HerdManager.OpenInBrowser"
+                    class="com.jeffersongoncalves.herdmanager.actions.HerdOpenInBrowserAction"
+                    text="Open in Browser"
+                    description="Open site in default browser"/>
+        </group>
+    </actions>
+</idea-plugin>
