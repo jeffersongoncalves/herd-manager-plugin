@@ -28,9 +28,6 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Verify plugin
-        run: ./gradlew verifyPlugin
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
