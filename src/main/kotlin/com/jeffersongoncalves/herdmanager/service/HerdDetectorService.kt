@@ -29,15 +29,23 @@ class HerdDetectorService {
 
     fun getHerdConfigDir(): Path? {
         val home = System.getProperty("user.home") ?: return null
-        val configDir = Paths.get(home, ".config", "herd")
-        return if (Files.isDirectory(configDir)) configDir else null
+        val os = System.getProperty("os.name", "").lowercase()
+
+        val candidates = when {
+            os.contains("mac") || os.contains("darwin") -> listOf(
+                Paths.get(home, "Library", "Application Support", "Herd"),
+                Paths.get(home, ".config", "herd")
+            )
+            else -> listOf(
+                Paths.get(home, ".config", "herd")
+            )
+        }
+
+        return candidates.firstOrNull { Files.isDirectory(it) }
     }
 
     fun getInstalledPhpVersions(): List<String> {
-        val configDir = getHerdConfigDir() ?: return defaultPhpVersions()
-        val phpJson = configDir.resolve("config").resolve("php.json")
-
-        if (!Files.exists(phpJson)) return defaultPhpVersions()
+        val phpJson = findPhpConfigFile() ?: return defaultPhpVersions()
 
         return try {
             val content = Files.readString(phpJson)
@@ -54,10 +62,7 @@ class HerdDetectorService {
     }
 
     fun getTld(): String {
-        val configDir = getHerdConfigDir() ?: return "test"
-        val valetConfig = configDir.resolve("config").resolve("valet").resolve("config.json")
-
-        if (!Files.exists(valetConfig)) return "test"
+        val valetConfig = findValetConfigFile() ?: return "test"
 
         return try {
             val content = Files.readString(valetConfig)
@@ -70,10 +75,7 @@ class HerdDetectorService {
     }
 
     fun getLinkedSites(): List<String> {
-        val configDir = getHerdConfigDir() ?: return emptyList()
-        val sitesDir = configDir.resolve("config").resolve("valet").resolve("Sites")
-
-        if (!Files.isDirectory(sitesDir)) return emptyList()
+        val sitesDir = findValetSitesDir() ?: return emptyList()
 
         return try {
             Files.list(sitesDir).use { stream ->
@@ -86,9 +88,73 @@ class HerdDetectorService {
     }
 
     fun isSiteLinked(siteName: String): Boolean {
-        val configDir = getHerdConfigDir() ?: return false
-        val sitePath = configDir.resolve("config").resolve("valet").resolve("Sites").resolve(siteName)
-        return Files.exists(sitePath)
+        val sitesDir = findValetSitesDir() ?: return false
+        return Files.exists(sitesDir.resolve(siteName))
+    }
+
+    private fun isMac(): Boolean {
+        val os = System.getProperty("os.name", "").lowercase()
+        return os.contains("mac") || os.contains("darwin")
+    }
+
+    /**
+     * Finds php.json config file.
+     * Windows: ~/.config/herd/config/php.json
+     * macOS: ~/Library/Application Support/Herd/config/php/php.json
+     *        or ~/.config/herd/config/php.json
+     */
+    private fun findPhpConfigFile(): Path? {
+        val home = System.getProperty("user.home") ?: return null
+        val candidates = mutableListOf<Path>()
+
+        if (isMac()) {
+            candidates.add(Paths.get(home, "Library", "Application Support", "Herd", "config", "php", "php.json"))
+        }
+
+        // Common path (Windows + macOS fallback)
+        candidates.add(Paths.get(home, ".config", "herd", "config", "php.json"))
+
+        return candidates.firstOrNull { Files.exists(it) }
+    }
+
+    /**
+     * Finds valet config.json.
+     * Windows: ~/.config/herd/config/valet/config.json
+     * macOS: ~/.config/valet/config.json (standard Valet path used by Herd)
+     *        or ~/.config/herd/config/valet/config.json
+     */
+    private fun findValetConfigFile(): Path? {
+        val home = System.getProperty("user.home") ?: return null
+        val candidates = mutableListOf<Path>()
+
+        if (isMac()) {
+            candidates.add(Paths.get(home, ".config", "valet", "config.json"))
+        }
+
+        // Common path (Windows + macOS fallback)
+        candidates.add(Paths.get(home, ".config", "herd", "config", "valet", "config.json"))
+
+        return candidates.firstOrNull { Files.exists(it) }
+    }
+
+    /**
+     * Finds the valet Sites directory.
+     * Windows: ~/.config/herd/config/valet/Sites/
+     * macOS: ~/.config/valet/Sites/ (standard Valet path used by Herd)
+     *        or ~/.config/herd/config/valet/Sites/
+     */
+    private fun findValetSitesDir(): Path? {
+        val home = System.getProperty("user.home") ?: return null
+        val candidates = mutableListOf<Path>()
+
+        if (isMac()) {
+            candidates.add(Paths.get(home, ".config", "valet", "Sites"))
+        }
+
+        // Common path (Windows + macOS fallback)
+        candidates.add(Paths.get(home, ".config", "herd", "config", "valet", "Sites"))
+
+        return candidates.firstOrNull { Files.isDirectory(it) }
     }
 
     private fun findWindowsHerd(): String? {
@@ -103,10 +169,12 @@ class HerdDetectorService {
     }
 
     private fun findMacHerd(): String? {
+        val home = System.getProperty("user.home") ?: return findInPath("herd")
         val candidates = listOf(
             "/opt/homebrew/bin/herd",
             "/usr/local/bin/herd",
-            Paths.get(System.getProperty("user.home"), ".config", "herd", "bin", "herd").toString()
+            "$home/Library/Application Support/Herd/bin/herd",
+            "$home/.config/herd/bin/herd"
         )
         return candidates.firstOrNull { Files.exists(Paths.get(it)) } ?: findInPath("herd")
     }
