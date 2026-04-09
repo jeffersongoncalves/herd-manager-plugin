@@ -7,14 +7,31 @@
     </vendor>
 
     <description><![CDATA[
-    Manage Laravel Herd site configuration directly from PHPStorm.
+    <h2>Herd Manager — Laravel Herd Integration for PhpStorm</h2>
+    <p>Manage <a href="https://herd.laravel.com">Laravel Herd</a> site configuration directly from your IDE. Auto-detects Herd installation, manages <code>herd.yml</code> project config files, and provides link/unlink/secure operations via the Herd CLI — all without leaving PhpStorm.</p>
+
+    <h3>Features</h3>
     <ul>
-        <li>Auto-detect and configure herd.yml</li>
-        <li>Configure site name, PHP version, HTTPS</li>
-        <li>Link/unlink sites via Herd CLI</li>
-        <li>Open sites in browser with one click</li>
-        <li>Status bar widget showing link status</li>
+        <li><b>Auto-detection</b> — Detects Laravel Herd installation on Windows, macOS, and Linux</li>
+        <li><b>Project configuration</b> — Create and edit <code>herd.yml</code> with site name, PHP version, and HTTPS settings</li>
+        <li><b>Site linking</b> — Link/unlink projects to Herd with one click</li>
+        <li><b>SSL management</b> — Secure sites with HTTPS directly from the IDE</li>
+        <li><b>Status bar widget</b> — See link status at a glance in the IDE status bar</li>
+        <li><b>Tool window panel</b> — Full configuration UI in the right sidebar</li>
+        <li><b>Smart notifications</b> — Prompts to configure or link on project open</li>
+        <li><b>Reactive updates</b> — UI auto-refreshes when <code>herd.yml</code> changes externally</li>
     </ul>
+
+    <h3>Quick Start</h3>
+    <ol>
+        <li>Open a Laravel project in PhpStorm</li>
+        <li>The plugin auto-detects Herd and checks for <code>herd.yml</code></li>
+        <li>If no config exists, a notification offers to <b>Configure Now</b></li>
+        <li>Set your site name, PHP version, and HTTPS preference</li>
+        <li>Click <b>Link Site</b> to register with Herd</li>
+    </ol>
+
+    <p>Access the tool window via <b>View → Tool Windows → Herd Manager</b> or the Herd icon in the right sidebar. Actions also available under <b>Tools → Herd</b>.</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
