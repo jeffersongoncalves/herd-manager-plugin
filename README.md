@@ -7,6 +7,10 @@
 
 **Herd Manager** is a JetBrains plugin that integrates [Laravel Herd](https://herd.laravel.com) into your IDE, letting you configure, link, and manage Herd sites without leaving your editor.
 
+- **Homepage**: [GitHub](https://github.com/jeffersongoncalves/herd-manager-plugin)
+- **Marketplace**: [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/31013-herd-manager)
+- **Issues**: [GitHub Issues](https://github.com/jeffersongoncalves/herd-manager-plugin/issues)
+
 ## Screenshots
 
 | Not Configured | Configured & Linked |
