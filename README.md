@@ -1,5 +1,8 @@
 # Herd Manager
 
+[![JetBrains Marketplace](https://img.shields.io/jetbrains/plugin/v/31013-herd-manager.svg)](https://plugins.jetbrains.com/plugin/31013-herd-manager)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/31013-herd-manager.svg)](https://plugins.jetbrains.com/plugin/31013-herd-manager)
+
 > Manage Laravel Herd site configuration directly from PhpStorm.
 
 **Herd Manager** is a JetBrains plugin that integrates [Laravel Herd](https://herd.laravel.com) into your IDE, letting you configure, link, and manage Herd sites without leaving your editor.
