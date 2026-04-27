@@ -1,5 +1,7 @@
 # Herd Manager
 
+![Herd Manager](banners/herd-manager.png)
+
 [![JetBrains Marketplace](https://img.shields.io/jetbrains/plugin/v/31013-herd-manager.svg)](https://plugins.jetbrains.com/plugin/31013-herd-manager)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/31013-herd-manager.svg)](https://plugins.jetbrains.com/plugin/31013-herd-manager)
 
