@@ -70,10 +70,10 @@ class HerdCliService {
 
                     ApplicationManager.getApplication().invokeLater {
                         if (result.exitCode == 0) {
-                            val output = result.stdout.trim().ifEmpty { "Command completed successfully" }
+                            val output = cleanOutput(result.stdout).ifEmpty { "Command completed successfully" }
                             showNotification(project, output, NotificationType.INFORMATION)
                         } else {
-                            val error = result.stderr.trim().ifEmpty { result.stdout.trim() }
+                            val error = cleanOutput(result.stderr).ifEmpty { cleanOutput(result.stdout) }
                             showNotification(project, "Error: $error", NotificationType.ERROR)
                         }
                         onComplete?.invoke()
@@ -88,6 +88,8 @@ class HerdCliService {
             }
         })
     }
+
+    private fun cleanOutput(raw: String): String = HerdOutputCleaner.clean(raw)
 
     private fun showNotification(project: Project, content: String, type: NotificationType) {
         NotificationGroupManager.getInstance()
