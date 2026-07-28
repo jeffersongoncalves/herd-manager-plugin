@@ -6,6 +6,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -16,6 +17,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.messages.Topic
 import com.jeffersongoncalves.herdmanager.model.HerdConfig
+import java.io.File
 
 @Service(Service.Level.PROJECT)
 class HerdConfigService(private val project: Project) {
@@ -79,7 +81,33 @@ class HerdConfigService(private val project: Project) {
         }
         config = newConfig
         checkLinkStatus()
+        updateEnvAppUrl(newConfig)
         fireConfigChanged()
+    }
+
+    private fun updateEnvAppUrl(cfg: HerdConfig) {
+        if (cfg.name.isBlank()) return
+        val basePath = project.basePath ?: return
+        val envFile = File(basePath, ".env")
+        if (!envFile.exists()) return
+
+        val tld = HerdDetectorService.getInstance().getTld()
+        val protocol = if (cfg.secured) "https" else "http"
+        val newUrl = "$protocol://${cfg.name}.$tld"
+
+        val content = envFile.readText(Charsets.UTF_8)
+        val lineRegex = Regex("(?m)^APP_URL=.*$")
+        val currentMatch = lineRegex.find(content)
+        if (currentMatch != null && currentMatch.value == "APP_URL=$newUrl") return
+
+        val newContent = if (currentMatch != null) {
+            lineRegex.replace(content, "APP_URL=$newUrl")
+        } else {
+            content.trimEnd('\n') + "\nAPP_URL=$newUrl\n"
+        }
+
+        envFile.writeText(newContent, Charsets.UTF_8)
+        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(envFile)
     }
 
     fun hasConfig(): Boolean = config != null
@@ -101,10 +129,12 @@ class HerdConfigService(private val project: Project) {
         }
     }
 
-    fun getDefaultConfig(): HerdConfig {
-        val projectName = project.name
-        return HerdConfig.createDefault(projectName)
-    }
+    fun getDefaultConfig(): HerdConfig = HerdConfig.createDefault(getFolderName())
+
+    fun getExpectedSiteName(): String = HerdConfig.createDefault(getFolderName()).name
+
+    fun getFolderName(): String =
+        ProjectRootManager.getInstance(project).contentRoots.firstOrNull()?.name ?: project.name
 
     private fun findHerdYml(): VirtualFile? {
         val baseDir = ProjectRootManager.getInstance(project).contentRoots.firstOrNull() ?: return null

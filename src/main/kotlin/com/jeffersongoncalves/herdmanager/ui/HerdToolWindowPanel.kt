@@ -58,6 +58,13 @@ class HerdToolWindowPanel(private val project: Project) : JPanel() {
             group("Site Configuration") {
                 row("Site Name:") {
                     cell(siteNameField).align(AlignX.FILL)
+                    button("Use Folder Name (${configService.getFolderName()})") {
+                        siteNameField.text = configService.getExpectedSiteName()
+                        buildUI()
+                    }.visible(
+                        configService.hasConfig() &&
+                            configService.config?.name != configService.getExpectedSiteName()
+                    )
                 }
                 row("PHP Version:") {
                     cell(phpVersionCombo)
