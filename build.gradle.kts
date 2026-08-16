@@ -2,8 +2,8 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.10"
-    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.kotlin.jvm") version "2.4.10"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.yaml:snakeyaml:2.3")
+    implementation("org.yaml:snakeyaml:2.6")
 
     intellijPlatform {
         phpstorm(providers.gradleProperty("platformVersion"))
