@@ -30,6 +30,21 @@ class HerdProjectOpenListener : ProjectActivity {
                     toolWindow?.show()
                 })
                 .notify(project)
+        } else if (!configService.isLinked && configService.isInParkedFolder) {
+            val siteName = configService.config?.name ?: return
+            val folderSite = configService.getExpectedSiteName()
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Herd Manager")
+                .createNotification(
+                    "Laravel Herd",
+                    "This project is inside a Herd folder and is already served as '$folderSite', " +
+                        "not '$siteName'. Use the folder name as site name?",
+                    NotificationType.INFORMATION
+                )
+                .addAction(NotificationAction.createSimpleExpiring("Use '$folderSite'") {
+                    configService.useFolderName()
+                })
+                .notify(project)
         } else if (!configService.isLinked) {
             val siteName = configService.config?.name ?: return
             NotificationGroupManager.getInstance()
@@ -40,6 +55,20 @@ class HerdProjectOpenListener : ProjectActivity {
                     NotificationType.INFORMATION
                 )
                 .addAction(NotificationAction.createSimpleExpiring("Link Now") {
+                    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Herd Manager")
+                    toolWindow?.show()
+                })
+                .notify(project)
+        } else if (configService.isParked && configService.needsSecure()) {
+            val siteName = configService.config?.name ?: return
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("Herd Manager")
+                .createNotification(
+                    "Laravel Herd",
+                    "Site '$siteName' is served by Herd (parked folder) but HTTPS is not set up yet.",
+                    NotificationType.INFORMATION
+                )
+                .addAction(NotificationAction.createSimpleExpiring("Secure Now") {
                     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Herd Manager")
                     toolWindow?.show()
                 })

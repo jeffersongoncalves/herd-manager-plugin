@@ -77,10 +77,15 @@ class HerdToolWindowPanel(private val project: Project) : JPanel() {
             group("Actions") {
                 row {
                     button("Save Configuration") { saveConfig() }
-                    button("Link Site") { linkSite() }
+                    // ponytail: inside a parked folder Herd already serves the site; `herd link` would only add a conflicting symlink
+                    button("Link Site") { linkSite() }.visible(!configService.isInParkedFolder)
+                    button("Secure Site") { secureSite() }
+                        .visible(configService.isParked && configService.needsSecure())
                 }
                 row {
-                    button("Unlink Site") { unlinkSite() }.enabled(configService.isLinked)
+                    button("Unlink Site") { unlinkSite() }
+                        .enabled(configService.isLinked)
+                        .visible(!configService.isInParkedFolder)
                 }
             }
         }
@@ -116,11 +121,15 @@ class HerdToolWindowPanel(private val project: Project) : JPanel() {
     private fun updateStatus() {
         if (configService.isLinked) {
             statusLabel.icon = HerdIcons.LINKED
-            statusLabel.text = "Linked"
+            statusLabel.text = if (configService.isParked) "Parked (served by Herd)" else "Linked"
             statusLabel.foreground = JBColor(JBColor.GREEN.darker(), JBColor.GREEN)
         } else if (configService.hasConfig()) {
             statusLabel.icon = HerdIcons.UNLINKED
-            statusLabel.text = "Not Linked"
+            statusLabel.text = if (configService.isInParkedFolder) {
+                "In Herd folder — set Site Name to the folder name and save"
+            } else {
+                "Not Linked"
+            }
             statusLabel.foreground = JBColor(JBColor.ORANGE.darker(), JBColor.ORANGE)
         } else {
             statusLabel.icon = HerdIcons.UNLINKED
@@ -164,6 +173,16 @@ class HerdToolWindowPanel(private val project: Project) : JPanel() {
                     configService.loadConfig()
                     refreshUI()
                 }
+            }
+        }
+    }
+
+    private fun secureSite() {
+        val siteName = configService.config?.name ?: return
+        cliService.secureSite(project, "$siteName.${detectorService.getTld()}") {
+            ApplicationManager.getApplication().invokeLater {
+                configService.loadConfig()
+                refreshUI()
             }
         }
     }

@@ -16,6 +16,7 @@
         <li><b>Project configuration</b> — Create and edit <code>herd.yml</code> with site name, PHP version, and HTTPS settings</li>
         <li><b>Site linking</b> — Link/unlink projects to Herd with one click</li>
         <li><b>SSL management</b> — Secure sites with HTTPS directly from the IDE</li>
+        <li><b>Parked folders</b> — Projects inside a Herd parked folder (e.g. <code>~/Herd</code>) are served without linking; only <code>herd secure</code> is offered</li>
         <li><b>Status bar widget</b> — See link status at a glance in the IDE status bar</li>
         <li><b>Tool window panel</b> — Full configuration UI in the right sidebar</li>
         <li><b>Smart notifications</b> — Prompts to configure or link on project open</li>

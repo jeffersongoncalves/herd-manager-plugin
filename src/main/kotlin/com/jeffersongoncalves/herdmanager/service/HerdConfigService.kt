@@ -30,6 +30,17 @@ class HerdConfigService(private val project: Project) {
     var isLinked: Boolean = false
         private set
 
+    /**
+     * Project lives directly inside a Herd parked folder (e.g. ~/Herd) and the site name matches
+     * the folder name, so Herd already serves it — no `herd link` needed.
+     */
+    var isParked: Boolean = false
+        private set
+
+    /** Project folder is directly inside a Herd parked folder, whatever the herd.yml site name is. */
+    var isInParkedFolder: Boolean = false
+        private set
+
     init {
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: List<VFileEvent>) {
@@ -45,6 +56,7 @@ class HerdConfigService(private val project: Project) {
                         is VFileDeleteEvent -> {
                             config = null
                             isLinked = false
+                            isParked = false
                             fireConfigChanged()
                         }
                     }
@@ -122,11 +134,29 @@ class HerdConfigService(private val project: Project) {
 
     fun checkLinkStatus() {
         val cfg = config
+        val detector = HerdDetectorService.getInstance()
+        val baseDir = ProjectRootManager.getInstance(project).contentRoots.firstOrNull()?.toNioPath()
+        isInParkedFolder = baseDir != null && detector.isInParkedPath(baseDir)
+        isParked = isInParkedFolder && cfg != null && cfg.name == getExpectedSiteName()
         isLinked = if (cfg != null && cfg.name.isNotBlank()) {
-            HerdDetectorService.getInstance().isSiteLinked(cfg.name)
+            isParked || detector.isSiteLinked(cfg.name)
         } else {
             false
         }
+    }
+
+    /** herd.yml asks for HTTPS but Herd has no certificate yet (parked sites never go through link+secure). */
+    fun needsSecure(): Boolean {
+        val cfg = config ?: return false
+        if (!cfg.secured || cfg.name.isBlank()) return false
+        val detector = HerdDetectorService.getInstance()
+        return !detector.isSiteSecured("${cfg.name}.${detector.getTld()}")
+    }
+
+    /** Rename the site to the folder name so Herd's parked folder serves it without `herd link`. */
+    fun useFolderName() {
+        val cfg = config ?: getDefaultConfig()
+        saveConfig(cfg.copy(name = getExpectedSiteName()))
     }
 
     fun getDefaultConfig(): HerdConfig = HerdConfig.createDefault(getFolderName())

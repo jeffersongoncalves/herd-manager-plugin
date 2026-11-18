@@ -92,6 +92,37 @@ class HerdDetectorService {
         return Files.exists(sitesDir.resolve(siteName))
     }
 
+    /** True when `herd secure` already issued a certificate for [host] (e.g. "myapp.test"). */
+    fun isSiteSecured(host: String): Boolean {
+        val certsDir = findValetSitesDir()?.resolveSibling("Certificates") ?: return false
+        return Files.exists(certsDir.resolve("$host.crt"))
+    }
+
+    /** Parked directories (`paths` in valet config.json). Every direct child is served automatically. */
+    fun getParkedPaths(): List<Path> {
+        val valetConfig = findValetConfigFile() ?: return emptyList()
+
+        return try {
+            val json = JsonParser.parseString(Files.readString(valetConfig)).asJsonObject
+            json.getAsJsonArray("paths")?.map { Paths.get(it.asString) } ?: emptyList()
+        } catch (e: Exception) {
+            log.warn("Failed to read parked paths from herd config", e)
+            emptyList()
+        }
+    }
+
+    /** True when [projectDir] sits directly inside a parked directory, so Herd already serves it. */
+    fun isInParkedPath(projectDir: Path): Boolean {
+        val parent = projectDir.parent ?: return false
+        return getParkedPaths().any { parked ->
+            try {
+                Files.isDirectory(parked) && Files.isSameFile(parent, parked)
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
     private fun isMac(): Boolean {
         val os = System.getProperty("os.name", "").lowercase()
         return os.contains("mac") || os.contains("darwin")

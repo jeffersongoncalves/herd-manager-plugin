@@ -39,6 +39,7 @@ class HerdLinkSiteAction : AnAction(
     override fun update(e: AnActionEvent) {
         val project = e.project
         e.presentation.isEnabledAndVisible = project != null &&
-                HerdDetectorService.getInstance().isHerdInstalled()
+                HerdDetectorService.getInstance().isHerdInstalled() &&
+                !HerdConfigService.getInstance(project).isInParkedFolder
     }
 }
